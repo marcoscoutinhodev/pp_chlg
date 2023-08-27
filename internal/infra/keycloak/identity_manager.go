@@ -9,22 +9,18 @@ import (
 )
 
 type IdentityManager struct {
-	baseUrl         string
-	realm           string
-	clientID        string
-	clientSecret    string
-	shopkeeperGroup string
-	customerGroup   string
+	baseUrl      string
+	realm        string
+	clientID     string
+	clientSecret string
 }
 
 func NewIdentityManager() *IdentityManager {
 	return &IdentityManager{
-		baseUrl:         os.Getenv("KC_BASE_URL"),
-		realm:           os.Getenv("KC_REALM"),
-		clientID:        os.Getenv("KC_CLIENT_ID"),
-		clientSecret:    os.Getenv("KC_CLIENT_SECRET"),
-		shopkeeperGroup: os.Getenv("KC_SHOPKEEPER_GROUP"),
-		customerGroup:   os.Getenv("KC_CUSTOMER_GROUP"),
+		baseUrl:      os.Getenv("KC_BASE_URL"),
+		realm:        os.Getenv("KC_REALM"),
+		clientID:     os.Getenv("KC_CLIENT_ID"),
+		clientSecret: os.Getenv("KC_CLIENT_SECRET"),
 	}
 }
 
