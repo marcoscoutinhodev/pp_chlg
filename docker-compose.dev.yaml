@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: "pp_chlg_app"
+    volumes:
+      - ./:/usr/app
+    ports:
+      - 8000:8000
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0
+    container_name: "pp_chlg_keycloak"
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL_HOST: kcpostgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_DB_SCHEMA: public
+    ports:
+      - 8080:8080
+    depends_on:
+      kcpostgres:
+        condition: service_healthy
+    healthcheck:
+      test: "exit 0"
+
+  kcpostgres:
+    image: postgres:15
+    container_name: "pp_chlg_keycloak_postgres"
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
+    volumes:
+      - ./.docker/kcpostgres:/var/lib/postgresql/data
+    ports:
+      - 54320:5432
+    healthcheck:
+      test: "exit 0"

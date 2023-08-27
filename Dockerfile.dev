@@ -1,0 +1,10 @@
+FROM golang:bullseye
+
+RUN apt update && \
+	apt full-upgrade -y
+
+WORKDIR /usr/app
+COPY . .
+RUN go mod tidy
+
+CMD ["tail", "-f", "/dev/null"]
