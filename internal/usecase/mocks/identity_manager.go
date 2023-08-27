@@ -27,7 +27,7 @@ func (i *IdentityManagerMock) CreateUser(ctx context.Context, user entity.User, 
 	return args.Get(0).(*gocloak.User), args.Error(1)
 }
 
-func (i *IdentityManagerMock) AuthenticateClient(ctx context.Context, username, password string) (*gocloak.JWT, error) {
+func (i *IdentityManagerMock) AuthenticateUser(ctx context.Context, username, password string) (*gocloak.JWT, error) {
 	args := i.Called(ctx, username, password)
 
 	if args.Get(0) == nil {

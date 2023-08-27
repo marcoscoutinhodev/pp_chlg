@@ -10,7 +10,7 @@ import (
 type IdentityManagerInterface interface {
 	GetGroupID(ctx context.Context, group string) (groupID string, err error)
 	CreateUser(ctx context.Context, user entity.User, groupID string) (*gocloak.User, error)
-	AuthenticateClient(ctx context.Context, username, password string) (*gocloak.JWT, error)
+	AuthenticateUser(ctx context.Context, username, password string) (*gocloak.JWT, error)
 }
 
 type UserValidatorInterface interface {
