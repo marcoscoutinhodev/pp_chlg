@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/marcoscoutinhodev/pp_chlg/internal/entity"
 )
@@ -20,7 +21,7 @@ func NewUserAuthentication(im IdentityManagerInterface, uv UserValidatorInterfac
 	}
 }
 
-type InputUserAuthenticationCreateUserDTO struct {
+type UserAuthentication_CreateUserInputDTO struct {
 	FirstName               string `json:"first_name"`
 	LastName                string `json:"last_name"`
 	Email                   string `json:"email"`
@@ -29,16 +30,22 @@ type InputUserAuthenticationCreateUserDTO struct {
 	Group                   string `json:"group"`
 }
 
-type OutputUserAuthenticationCreateUserDTO struct {
-	ValidationError  []string `json:"validation_error,omitempty"`
-	DuplicationError string   `json:"duplication_error,omitempty"`
+type OutputUserAuthenticationDTO struct {
+	StatusCode int         `json:"-"`
+	Success    bool        `json:"success"`
+	Data       interface{} `json:"data,omitempty"`
+	Errors     []string    `json:"errors,omitempty"`
 }
 
-func (u UserAuthentication) CreateUser(ctx context.Context, input *InputUserAuthenticationCreateUserDTO) (*OutputUserAuthenticationCreateUserDTO, error) {
+func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentication_CreateUserInputDTO) (*OutputUserAuthenticationDTO, error) {
 	user := entity.NewUser(input.FirstName, input.LastName, input.Email, input.Password, input.TaxpayeerIdentification, input.Group)
 
 	if err := u.UserValidator.Validate(*user); len(err) > 0 {
-		output := &OutputUserAuthenticationCreateUserDTO{ValidationError: err}
+		output := &OutputUserAuthenticationDTO{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Errors:     err,
+		}
 		return output, nil
 	}
 
@@ -48,7 +55,11 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *InputUserAuth
 	}
 
 	if userIsRegistered {
-		output := &OutputUserAuthenticationCreateUserDTO{DuplicationError: "email or and taxpayeer identification is already registered"}
+		output := &OutputUserAuthenticationDTO{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Errors:     []string{"email or and taxpayeer identification is already registered"},
+		}
 		return output, nil
 	}
 
@@ -58,7 +69,11 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *InputUserAuth
 	}
 
 	if groupID == "" {
-		output := &OutputUserAuthenticationCreateUserDTO{ValidationError: []string{"invalid group provided"}}
+		output := &OutputUserAuthenticationDTO{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Errors:     []string{"invalid group provided"},
+		}
 		return output, nil
 	}
 
@@ -73,5 +88,8 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *InputUserAuth
 		return nil, err
 	}
 
-	return &OutputUserAuthenticationCreateUserDTO{}, nil
+	return &OutputUserAuthenticationDTO{
+		StatusCode: http.StatusCreated,
+		Success:    true,
+	}, nil
 }

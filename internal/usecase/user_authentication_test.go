@@ -14,7 +14,7 @@ type UserAuthenticationCreateUserSuite struct {
 	suite.Suite
 }
 
-var createUserInputMock = &InputUserAuthenticationCreateUserDTO{
+var createUserInputMock = &UserAuthentication_CreateUserInputDTO{
 	FirstName:               "any_first_name",
 	LastName:                "any_last_name",
 	Email:                   "any_email",
@@ -41,9 +41,10 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidInput_ShouldReturnVa
 	output, err := sut.CreateUser(context.Background(), createUserInputMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationCreateUserDTO{
-		ValidationError:  []string{"any_error", "other_error"},
-		DuplicationError: "",
+	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+		StatusCode: 400,
+		Success:    false,
+		Errors:     []string{"any_error", "other_error"},
 	}, *output)
 
 	userValidatorMock.AssertExpectations(s.T())
@@ -70,9 +71,10 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayeerIdentificat
 	output, err := sut.CreateUser(context.Background(), createUserInputMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationCreateUserDTO{
-		ValidationError:  nil,
-		DuplicationError: "email or and taxpayeer identification is already registered",
+	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+		StatusCode: 400,
+		Success:    false,
+		Errors:     []string{"email or and taxpayeer identification is already registered"},
 	}, *output)
 
 	userValidatorMock.AssertExpectations(s.T())
@@ -103,9 +105,10 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidGroup_ShouldReturnVa
 	output, err := sut.CreateUser(context.Background(), createUserInputMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationCreateUserDTO{
-		ValidationError:  []string{"invalid group provided"},
-		DuplicationError: "",
+	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+		StatusCode: 400,
+		Success:    false,
+		Errors:     []string{"invalid group provided"},
 	}, *output)
 
 	identityManagerMock.AssertExpectations(s.T())
