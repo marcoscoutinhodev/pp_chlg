@@ -1,8 +1,14 @@
 package pkg
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
 
 func CPFCNPJValidator(input string) bool {
+	input = strings.Trim(input, " ")
+
 	switch len(input) {
 	case 11:
 		return validateCPF(input)
@@ -19,14 +25,12 @@ func validateCPF(cpf string) bool {
 	}
 
 	checkDigit := getCheckDigit(cpf, firstSequency)
-
 	if string(cpf[9]) == checkDigit {
 		secondSequency := []int{
 			11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
 		}
 
 		checkDigit = getCheckDigit(cpf, secondSequency)
-
 		if string(cpf[10]) == checkDigit {
 			return true
 		}
@@ -41,14 +45,12 @@ func validateCNPJ(cnpj string) bool {
 	}
 
 	checkDigit := getCheckDigit(cnpj, firstSequency)
-
 	if string(cnpj[12]) == checkDigit {
 		secondSequency := []int{
 			6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2,
 		}
 
 		checkDigit = getCheckDigit(cnpj, secondSequency)
-
 		if string(cnpj[13]) == checkDigit {
 			return true
 		}
@@ -57,11 +59,16 @@ func validateCNPJ(cnpj string) bool {
 	return false
 }
 
-func getCheckDigit(cnpj string, sequencyToSum []int) string {
+func getCheckDigit(input string, sequencyToSum []int) string {
 	sum := 0
 
 	for index, value := range sequencyToSum {
-		sum += (value * int(cnpj[index]))
+		valueAsInt, err := strconv.Atoi(string(rune(input[index])))
+		if err != nil {
+			return ""
+		}
+
+		sum += (value * valueAsInt)
 	}
 
 	mod := sum % 11
