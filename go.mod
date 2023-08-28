@@ -5,6 +5,7 @@ go 1.21.0
 require (
 	github.com/Nerzal/gocloak/v13 v13.8.0
 	github.com/go-chi/chi/v5 v5.0.10
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.2
 	go.mongodb.org/mongo-driver v1.12.1
