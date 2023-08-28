@@ -31,7 +31,7 @@ func (u UserAuthenticationController) CreateUser(w http.ResponseWriter, r *http.
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*3)
 	defer cancel()
 
 	output, err := u.UserAuthenticationUseCase.CreateUser(ctx, &input)
@@ -60,7 +60,7 @@ func (u UserAuthenticationController) AuthenticateUser(w http.ResponseWriter, r 
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second*3)
 	defer cancel()
 
 	output, err := u.UserAuthenticationUseCase.AuthenticateUser(ctx, &input)

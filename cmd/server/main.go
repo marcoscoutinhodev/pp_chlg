@@ -8,10 +8,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/http/controller"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/keycloak"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/repository"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/validator"
-	"github.com/marcoscoutinhodev/pp_chlg/internal/presentation/controller"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/usecase"
 )
 
