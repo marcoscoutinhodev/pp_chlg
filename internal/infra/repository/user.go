@@ -43,7 +43,32 @@ func (ur UserRepository) CheckUserIsRegistered(ctx context.Context, user entity.
 }
 
 func (ur UserRepository) Save(ctx context.Context, user entity.User) error {
-	userColl := ur.client.Database(os.Getenv("MONGO_DB")).Collection("users")
-	_, err := userColl.InsertOne(ctx, user)
+	session, err := ur.client.StartSession()
+	if err != nil {
+		return err
+	}
+
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+		userColl := ur.client.Database(os.Getenv("MONGO_DB")).Collection("users")
+		if _, err := userColl.InsertOne(ctx, user); err != nil {
+			return nil, err
+		}
+
+		wallet := entity.NewWallet(user.UserID, 0)
+
+		walletColl := ur.client.Database(os.Getenv("MONGO_DB")).Collection("wallets")
+		if _, err := walletColl.InsertOne(ctx, wallet); err != nil {
+			return nil, err
+		}
+
+		if err := session.CommitTransaction(ctx); err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+
 	return err
 }
