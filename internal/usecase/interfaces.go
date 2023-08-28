@@ -8,13 +8,13 @@ import (
 )
 
 type IdentityManagerInterface interface {
-	GetGroupID(ctx context.Context, group string) (groupID string, err error)
-	CreateUser(ctx context.Context, user entity.User, groupID string) (*gocloak.User, error)
+	CreateUser(ctx context.Context, user entity.User) (*gocloak.User, error)
 	AuthenticateUser(ctx context.Context, username, password string) (*gocloak.JWT, error)
 }
 
 type UserValidatorInterface interface {
 	Validate(user entity.User) (errors []string)
+	ValidateEmailAndPassword(email, password string) (errors []string)
 }
 
 type UserRepositoryInterface interface {

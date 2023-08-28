@@ -6,18 +6,18 @@ type User struct {
 	FirstName               string `bson:"first_name"`
 	LastName                string `bson:"last_name"`
 	Email                   string `bson:"email"`
-	Password                string `bson:"password"`
+	Password                string `bson:"-"`
 	TaxpayeerIdentification string `bson:"taxpayeer_identification"`
-	Group                   string `bson:"group"`
+	Role                    string `bson:"role"`
 }
 
-func NewUser(firstName, lastName, email, password, taxpayeerIdentification, group string) *User {
+func NewUser(firstName, lastName, email, password, taxpayeerIdentification, role string) *User {
 	return &User{
 		FirstName:               firstName,
 		LastName:                lastName,
 		Email:                   email,
 		Password:                password,
 		TaxpayeerIdentification: taxpayeerIdentification,
-		Group:                   group,
+		Role:                    role,
 	}
 }

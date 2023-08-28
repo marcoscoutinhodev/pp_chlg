@@ -21,15 +21,6 @@ func NewUserAuthentication(im IdentityManagerInterface, uv UserValidatorInterfac
 	}
 }
 
-type UserAuthentication_CreateUserInputDTO struct {
-	FirstName               string `json:"first_name"`
-	LastName                string `json:"last_name"`
-	Email                   string `json:"email"`
-	Password                string `json:"password"`
-	TaxpayeerIdentification string `json:"taxpayeer_identification"`
-	Group                   string `json:"group"`
-}
-
 type OutputUserAuthenticationDTO struct {
 	StatusCode int         `json:"-"`
 	Success    bool        `json:"success"`
@@ -37,8 +28,17 @@ type OutputUserAuthenticationDTO struct {
 	Errors     []string    `json:"errors,omitempty"`
 }
 
+type UserAuthentication_CreateUserInputDTO struct {
+	FirstName               string `json:"first_name"`
+	LastName                string `json:"last_name"`
+	Email                   string `json:"email"`
+	Password                string `json:"password"`
+	TaxpayeerIdentification string `json:"taxpayeer_identification"`
+	Role                    string `json:"role"`
+}
+
 func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentication_CreateUserInputDTO) (*OutputUserAuthenticationDTO, error) {
-	user := entity.NewUser(input.FirstName, input.LastName, input.Email, input.Password, input.TaxpayeerIdentification, input.Group)
+	user := entity.NewUser(input.FirstName, input.LastName, input.Email, input.Password, input.TaxpayeerIdentification, input.Role)
 
 	if err := u.UserValidator.Validate(*user); len(err) > 0 {
 		output := &OutputUserAuthenticationDTO{
@@ -58,26 +58,12 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentic
 		output := &OutputUserAuthenticationDTO{
 			StatusCode: http.StatusBadRequest,
 			Success:    false,
-			Errors:     []string{"email or and taxpayeer identification is already registered"},
+			Errors:     []string{"email and/or taxpayeer identification are already registered"},
 		}
 		return output, nil
 	}
 
-	groupID, err := u.IdentityManager.GetGroupID(ctx, user.Group)
-	if err != nil {
-		return nil, err
-	}
-
-	if groupID == "" {
-		output := &OutputUserAuthenticationDTO{
-			StatusCode: http.StatusBadRequest,
-			Success:    false,
-			Errors:     []string{"invalid group provided"},
-		}
-		return output, nil
-	}
-
-	kcUser, err := u.IdentityManager.CreateUser(ctx, *user, groupID)
+	kcUser, err := u.IdentityManager.CreateUser(ctx, *user)
 	if err != nil {
 		return nil, err
 	}

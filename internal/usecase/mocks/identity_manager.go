@@ -12,13 +12,8 @@ type IdentityManagerMock struct {
 	mock.Mock
 }
 
-func (i *IdentityManagerMock) GetGroupID(ctx context.Context, group string) (groupID string, err error) {
-	args := i.Called(ctx, group)
-	return args.String(0), args.Error(1)
-}
-
-func (i *IdentityManagerMock) CreateUser(ctx context.Context, user entity.User, groupID string) (*gocloak.User, error) {
-	args := i.Called(ctx, user, groupID)
+func (i *IdentityManagerMock) CreateUser(ctx context.Context, user entity.User) (*gocloak.User, error) {
+	args := i.Called(ctx, user)
 
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

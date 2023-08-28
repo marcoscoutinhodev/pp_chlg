@@ -38,8 +38,20 @@ func (uv UserValidator) Validate(user entity.User) (errors []string) {
 		errors = append(errors, "taxpayeer identification must be a valid CPF or CNPJ")
 	}
 
-	if isValid := uv.GroupValidator(user.Group); !isValid {
-		errors = append(errors, "unknown group")
+	if isValid := uv.RoleValidator(user.Role); !isValid {
+		errors = append(errors, "unknown role")
+	}
+
+	return
+}
+
+func (uv UserValidator) ValidateEmailAndPassword(email, password string) (errors []string) {
+	if isValid := uv.EmailValidator(email); !isValid {
+		errors = append(errors, "email must be a valid email address")
+	}
+
+	if isValid := uv.PasswordValidator(password); !isValid {
+		errors = append(errors, "password must be at least 7 characters with uppercase/lowercase letters, number, special character")
 	}
 
 	return
@@ -84,11 +96,11 @@ func (uv UserValidator) PasswordValidator(password string) bool {
 	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
 }
 
-func (uv UserValidator) GroupValidator(group string) bool {
-	availableGroups := strings.Split(os.Getenv("KC_AVAILABLE_GROUPS"), ",")
+func (uv UserValidator) RoleValidator(role string) bool {
+	availableRoles := strings.Split(os.Getenv("KC_AVAILABLE_ROLES"), ",")
 
-	for _, g := range availableGroups {
-		if group == g {
+	for _, r := range availableRoles {
+		if role == r {
 			return true
 		}
 	}

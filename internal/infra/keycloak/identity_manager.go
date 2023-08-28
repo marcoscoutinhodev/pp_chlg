@@ -34,29 +34,7 @@ func (im IdentityManager) loginClient(ctx context.Context) (*gocloak.JWT, error)
 	return jwt, nil
 }
 
-func (im IdentityManager) GetGroupID(ctx context.Context, group string) (groupID string, err error) {
-	clientToken, err := im.loginClient(ctx)
-	if err != nil {
-		return
-	}
-
-	client := gocloak.NewClient(im.baseUrl)
-	groups, err := client.GetGroups(ctx, clientToken.AccessToken, im.realm, gocloak.GetGroupsParams{})
-	if err != nil {
-		return
-	}
-
-	for _, g := range groups {
-		if *g.Name == group {
-			groupID = *g.ID
-			break
-		}
-	}
-
-	return
-}
-
-func (im IdentityManager) CreateUser(ctx context.Context, user entity.User, groupID string) (*gocloak.User, error) {
+func (im IdentityManager) CreateUser(ctx context.Context, user entity.User) (*gocloak.User, error) {
 	clientToken, err := im.loginClient(ctx)
 	if err != nil {
 		return nil, err
@@ -80,7 +58,18 @@ func (im IdentityManager) CreateUser(ctx context.Context, user entity.User, grou
 		return nil, err
 	}
 
-	if err := client.AddUserToGroup(ctx, clientToken.AccessToken, im.realm, userID, groupID); err != nil {
+	if err := client.SetPassword(ctx, clientToken.AccessToken, userID, im.realm, user.Password, false); err != nil {
+		return nil, err
+	}
+
+	kcRole, err := client.GetRealmRole(ctx, clientToken.AccessToken, im.realm, user.Role)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.AddRealmRoleToUser(ctx, clientToken.AccessToken, im.realm, userID, []gocloak.Role{
+		*kcRole,
+	}); err != nil {
 		return nil, err
 	}
 

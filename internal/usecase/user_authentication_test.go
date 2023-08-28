@@ -20,7 +20,7 @@ var createUserInputMock = &UserAuthentication_CreateUserInputDTO{
 	Email:                   "any_email",
 	Password:                "any_password",
 	TaxpayeerIdentification: "any_taxpayeer_identification",
-	Group:                   "any_group",
+	Role:                    "any_role",
 }
 
 func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidInput_ShouldReturnValidationError() {
@@ -30,7 +30,7 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidInput_ShouldReturnVa
 		createUserInputMock.Email,
 		createUserInputMock.Password,
 		createUserInputMock.TaxpayeerIdentification,
-		createUserInputMock.Group,
+		createUserInputMock.Role,
 	)
 
 	userValidatorMock := &mocks.UserValidatorMock{}
@@ -57,7 +57,7 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayeerIdentificat
 		createUserInputMock.Email,
 		createUserInputMock.Password,
 		createUserInputMock.TaxpayeerIdentification,
-		createUserInputMock.Group,
+		createUserInputMock.Role,
 	)
 
 	userValidatorMock := &mocks.UserValidatorMock{}
@@ -74,44 +74,9 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayeerIdentificat
 	assert.Equal(s.T(), OutputUserAuthenticationDTO{
 		StatusCode: 400,
 		Success:    false,
-		Errors:     []string{"email or and taxpayeer identification is already registered"},
+		Errors:     []string{"email and/or taxpayeer identification are already registered"},
 	}, *output)
 
-	userValidatorMock.AssertExpectations(s.T())
-	userRepositoryMock.AssertExpectations(s.T())
-}
-
-func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidGroup_ShouldReturnValidationError() {
-	userEntityMock := entity.NewUser(
-		createUserInputMock.FirstName,
-		createUserInputMock.LastName,
-		createUserInputMock.Email,
-		createUserInputMock.Password,
-		createUserInputMock.TaxpayeerIdentification,
-		createUserInputMock.Group,
-	)
-
-	identityManagerMock := &mocks.IdentityManagerMock{}
-	identityManagerMock.On("GetGroupID", context.Background(), userEntityMock.Group).Return("", nil)
-
-	userValidatorMock := &mocks.UserValidatorMock{}
-	userValidatorMock.On("Validate", *userEntityMock).Return(nil)
-
-	userRepositoryMock := &mocks.UserRepositoryMock{}
-	userRepositoryMock.On("CheckUserIsRegistered", context.Background(), *userEntityMock).Return(false, nil)
-
-	sut := NewUserAuthentication(identityManagerMock, userValidatorMock, userRepositoryMock)
-
-	output, err := sut.CreateUser(context.Background(), createUserInputMock)
-
-	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationDTO{
-		StatusCode: 400,
-		Success:    false,
-		Errors:     []string{"invalid group provided"},
-	}, *output)
-
-	identityManagerMock.AssertExpectations(s.T())
 	userValidatorMock.AssertExpectations(s.T())
 	userRepositoryMock.AssertExpectations(s.T())
 }
