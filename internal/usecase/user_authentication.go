@@ -79,3 +79,30 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentic
 		Success:    true,
 	}, nil
 }
+
+type UserAuthentication_AuthenticateUserInputDTO struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (u UserAuthentication) AuthenticateUser(ctx context.Context, input *UserAuthentication_AuthenticateUserInputDTO) (*OutputUserAuthenticationDTO, error) {
+	err := u.UserValidator.ValidateEmailAndPassword(input.Email, input.Password)
+	if len(err) == 0 {
+		jwt, err := u.IdentityManager.AuthenticateUser(ctx, input.Email, input.Password)
+		if err == nil {
+			output := &OutputUserAuthenticationDTO{
+				StatusCode: http.StatusOK,
+				Success:    true,
+				Data:       jwt,
+			}
+			return output, nil
+		}
+	}
+
+	output := &OutputUserAuthenticationDTO{
+		StatusCode: http.StatusUnauthorized,
+		Success:    false,
+		Errors:     []string{"email and/or password are invalid"},
+	}
+	return output, nil
+}

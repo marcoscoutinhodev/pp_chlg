@@ -38,6 +38,7 @@ func main() {
 
 	mux.Route("/user", func(r chi.Router) {
 		r.Post("/signup", userAuthenticationController.CreateUser)
+		r.Post("/signin", userAuthenticationController.AuthenticateUser)
 	})
 
 	http.ListenAndServe(os.Getenv("SERVER_PORT"), mux)

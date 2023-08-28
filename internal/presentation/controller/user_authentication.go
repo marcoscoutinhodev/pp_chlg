@@ -48,3 +48,32 @@ func (u UserAuthenticationController) CreateUser(w http.ResponseWriter, r *http.
 	w.WriteHeader(output.StatusCode)
 	json.NewEncoder(w).Encode(output)
 }
+
+func (u UserAuthenticationController) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
+	var input usecase.UserAuthentication_AuthenticateUserInputDTO
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "failed to parse request body",
+		})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	output, err := u.UserAuthenticationUseCase.AuthenticateUser(ctx, &input)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"error":   "internal error, try again in a few minutes",
+		})
+		fmt.Printf("internal error: %v\n", err)
+		return
+	}
+
+	w.WriteHeader(output.StatusCode)
+	json.NewEncoder(w).Encode(output)
+}

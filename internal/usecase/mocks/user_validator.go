@@ -18,3 +18,13 @@ func (u *UserValidatorMock) Validate(user entity.User) (errors []string) {
 
 	return args.Get(0).([]string)
 }
+
+func (u *UserValidatorMock) ValidateEmailAndPassword(email, password string) (errors []string) {
+	args := u.Called(email, password)
+
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).([]string)
+}

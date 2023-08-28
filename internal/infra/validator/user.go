@@ -18,19 +18,19 @@ func NewUserValidator() *UserValidator {
 }
 
 func (uv UserValidator) Validate(user entity.User) (errors []string) {
-	if isValid := uv.NameValidator(user.FirstName); !isValid {
+	if isValid := uv.nameValidator(user.FirstName); !isValid {
 		errors = append(errors, "first name must have only upper case letters")
 	}
 
-	if isValid := uv.NameValidator(user.LastName); !isValid {
+	if isValid := uv.nameValidator(user.LastName); !isValid {
 		errors = append(errors, "last name must have only upper case letters")
 	}
 
-	if isValid := uv.EmailValidator(user.Email); !isValid {
+	if isValid := uv.emailValidator(user.Email); !isValid {
 		errors = append(errors, "email must be a valid email address")
 	}
 
-	if isValid := uv.PasswordValidator(user.Password); !isValid {
+	if isValid := uv.passwordValidator(user.Password); !isValid {
 		errors = append(errors, "password must be at least 7 characters with uppercase/lowercase letters, number, special character")
 	}
 
@@ -38,7 +38,7 @@ func (uv UserValidator) Validate(user entity.User) (errors []string) {
 		errors = append(errors, "taxpayeer identification must be a valid CPF or CNPJ")
 	}
 
-	if isValid := uv.RoleValidator(user.Role); !isValid {
+	if isValid := uv.roleValidator(user.Role); !isValid {
 		errors = append(errors, "unknown role")
 	}
 
@@ -46,28 +46,28 @@ func (uv UserValidator) Validate(user entity.User) (errors []string) {
 }
 
 func (uv UserValidator) ValidateEmailAndPassword(email, password string) (errors []string) {
-	if isValid := uv.EmailValidator(email); !isValid {
+	if isValid := uv.emailValidator(email); !isValid {
 		errors = append(errors, "email must be a valid email address")
 	}
 
-	if isValid := uv.PasswordValidator(password); !isValid {
+	if isValid := uv.passwordValidator(password); !isValid {
 		errors = append(errors, "password must be at least 7 characters with uppercase/lowercase letters, number, special character")
 	}
 
 	return
 }
 
-func (uv UserValidator) NameValidator(name string) bool {
+func (uv UserValidator) nameValidator(name string) bool {
 	isMatch := regexp.MustCompile(`^[A-Z\s]*$`).MatchString(name)
 	return isMatch
 }
 
-func (uv UserValidator) EmailValidator(email string) bool {
+func (uv UserValidator) emailValidator(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
 
-func (uv UserValidator) PasswordValidator(password string) bool {
+func (uv UserValidator) passwordValidator(password string) bool {
 	var (
 		hasMinLen  = false
 		hasUpper   = false
@@ -96,7 +96,7 @@ func (uv UserValidator) PasswordValidator(password string) bool {
 	return hasMinLen && hasUpper && hasLower && hasNumber && hasSpecial
 }
 
-func (uv UserValidator) RoleValidator(role string) bool {
+func (uv UserValidator) roleValidator(role string) bool {
 	availableRoles := strings.Split(os.Getenv("KC_AVAILABLE_ROLES"), ",")
 
 	for _, r := range availableRoles {
