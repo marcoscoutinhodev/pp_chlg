@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/marcoscoutinhodev/pp_chlg/internal/entity"
@@ -83,4 +84,57 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayeerIdentificat
 
 func TestUserAuthentication_CreateUserSuite(t *testing.T) {
 	suite.Run(t, new(UserAuthenticationCreateUserSuite))
+}
+
+type UserAuthenticationAuthenticateUserSuite struct {
+	suite.Suite
+}
+
+var authenticateUserInputMock = &UserAuthentication_AuthenticateUserInputDTO{
+	Email:    "any_email",
+	Password: "any_password",
+}
+
+func (s *UserAuthenticationAuthenticateUserSuite) TestGivenInvalidInput_ShouldReturnError() {
+
+	userValidatorMock := &mocks.UserValidatorMock{}
+	userValidatorMock.On("ValidateEmailAndPassword", authenticateUserInputMock.Email, authenticateUserInputMock.Password).Return([]string{"any_error", "other_error"})
+
+	sut := NewUserAuthentication(&mocks.IdentityManagerMock{}, userValidatorMock, &mocks.UserRepositoryMock{})
+
+	output, err := sut.AuthenticateUser(context.Background(), authenticateUserInputMock)
+
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+		StatusCode: 401,
+		Success:    false,
+		Errors:     []string{"email and/or password are invalid"},
+	}, *output)
+
+	userValidatorMock.AssertExpectations(s.T())
+}
+
+func (s *UserAuthenticationAuthenticateUserSuite) TestGivenInvalidEmailOrPassword_ShouldReturnError() {
+	identityManagerMock := &mocks.IdentityManagerMock{}
+	identityManagerMock.On("AuthenticateUser", context.Background(), authenticateUserInputMock.Email, authenticateUserInputMock.Password).Return(nil, errors.New("any_error"))
+
+	userValidatorMock := &mocks.UserValidatorMock{}
+	userValidatorMock.On("ValidateEmailAndPassword", authenticateUserInputMock.Email, authenticateUserInputMock.Password).Return([]string{})
+
+	sut := NewUserAuthentication(identityManagerMock, userValidatorMock, &mocks.UserRepositoryMock{})
+
+	output, err := sut.AuthenticateUser(context.Background(), authenticateUserInputMock)
+
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+		StatusCode: 401,
+		Success:    false,
+		Errors:     []string{"email and/or password are invalid"},
+	}, *output)
+
+	userValidatorMock.AssertExpectations(s.T())
+}
+
+func TestUserAuthentication_AuthenticateUserSuite(t *testing.T) {
+	suite.Run(t, new(UserAuthenticationAuthenticateUserSuite))
 }
