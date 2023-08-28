@@ -21,3 +21,15 @@ type UserRepositoryInterface interface {
 	CheckUserIsRegistered(ctx context.Context, user entity.User) (bool, error)
 	Save(ctx context.Context, user entity.User) error
 }
+
+type WalletRepositoryInterface interface {
+	Load(ctx context.Context, userID string) (*entity.Wallet, error)
+	Transfer(ctx context.Context, transfer entity.Transfer) (userPayer, userPayee *entity.User, err error)
+}
+type TransferAuthorizationServiceInterface interface {
+	Check(ctx context.Context, transfer entity.Transfer) error
+}
+
+type EmailNotificationServiceInterface interface {
+	TransferNotification(payer, payee *entity.User)
+}
