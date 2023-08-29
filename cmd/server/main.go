@@ -9,8 +9,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/http/controller"
+	http_middleware "github.com/marcoscoutinhodev/pp_chlg/internal/infra/http/middleware"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/keycloak"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/repository"
+	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/service"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/validator"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/usecase"
 )
@@ -26,19 +28,28 @@ func main() {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 
-	identityManager := keycloak.NewIdentityManager()
-
 	mongoClient := repository.NewMongoClient(context.Background())
-	userRepository := repository.NewUserRepository(mongoClient)
 
+	identityManager := keycloak.NewIdentityManager()
 	userValidator := validator.NewUserValidator()
-
+	userRepository := repository.NewUserRepository(mongoClient)
 	userAuthenticationUseCase := usecase.NewUserAuthentication(identityManager, userValidator, userRepository)
 	userAuthenticationController := controller.NewUserAuthenticationController(*userAuthenticationUseCase)
 
 	mux.Route("/user", func(r chi.Router) {
 		r.Post("/signup", userAuthenticationController.CreateUser)
 		r.Post("/signin", userAuthenticationController.AuthenticateUser)
+	})
+
+	transferAuthorizationService := service.NewTransferAuthorizationService()
+	emailNotificationService := service.NewEmailNotificationService()
+	walletRepository := repository.NewWalleteRepository(mongoClient)
+	transferUseCase := usecase.NewTransfer(transferAuthorizationService, emailNotificationService, walletRepository)
+	transferController := controller.NewTransfer(*transferUseCase)
+	transferAuthorizationMiddleware := http_middleware.NewAuthorization(map[string]bool{"customer": true})
+
+	mux.Post("/transfer", func(w http.ResponseWriter, r *http.Request) {
+		transferAuthorizationMiddleware.Handle(w, r, transferController.Handle)
 	})
 
 	http.ListenAndServe(os.Getenv("SERVER_PORT"), mux)
