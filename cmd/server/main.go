@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	emailsendingsimulation "github.com/marcoscoutinhodev/pp_chlg/email-sending-simulation"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/http/controller"
 	http_middleware "github.com/marcoscoutinhodev/pp_chlg/internal/infra/http/middleware"
 	"github.com/marcoscoutinhodev/pp_chlg/internal/infra/keycloak"
@@ -22,6 +23,11 @@ func init() {
 	if err != nil {
 		panic("Error loading .env file")
 	}
+
+	// essa goroutine vai emitir logs
+	// simulando algum serviço que consuma os dados de transferência
+	// para fazer o envio dos emails
+	go emailsendingsimulation.EmailSendingSimulation()
 }
 
 func main() {
