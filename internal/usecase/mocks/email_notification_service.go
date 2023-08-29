@@ -9,6 +9,6 @@ type EmailNotificationServiceMock struct {
 	mock.Mock
 }
 
-func (e *EmailNotificationServiceMock) TransferNotification(payer, payee *entity.User) {
-	e.Called(payer, payee)
+func (e *EmailNotificationServiceMock) TransferNotification(payer, payee *entity.User, amount float64) {
+	e.Called(payer, payee, amount)
 }

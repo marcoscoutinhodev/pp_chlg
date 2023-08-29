@@ -71,7 +71,7 @@ func (t Transfer) Execute(ctx context.Context, input *InputTransferDTO) (*OuputT
 		return output, nil
 	}
 
-	t.emailNotificationService.TransferNotification(userPayer, userPayee)
+	t.emailNotificationService.TransferNotification(userPayer, userPayee, transfer.Amount)
 
 	return &OuputTransferDTO{
 		StatusCode: http.StatusOK,
