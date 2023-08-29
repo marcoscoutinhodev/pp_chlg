@@ -13,6 +13,8 @@ services:
     depends_on:
       keycloak:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
   keycloak:
     image: quay.io/keycloak/keycloak:22.0
@@ -44,7 +46,21 @@ services:
       POSTGRES_DB: keycloak
     volumes:
       - ./.docker/kcpostgres:/var/lib/postgresql/data
+    healthcheck:
+      test: "exit 0"
+
+  rabbitmq:
+    image: rabbitmq:3.12.4-management-alpine
+    container_name: "pp_chlg_rabbitmq"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - ./.docker/amqp:/var/lib/rabbitmq
     ports:
-      - 54320:5432
+      - 5672:5672
+      - 15672:15672
+      - 15692:15692
     healthcheck:
       test: "exit 0"
