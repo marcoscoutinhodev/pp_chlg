@@ -48,7 +48,7 @@ func (im IdentityManager) CreateUser(ctx context.Context, user entity.User) (*go
 		FirstName:     &user.FirstName,
 		LastName:      &user.LastName,
 		Attributes: &map[string][]string{
-			"TaxpayeerIdentification": {user.TaxpayeerIdentification},
+			"TaxpayerIdentification": {user.TaxpayerIdentification},
 		},
 	}
 

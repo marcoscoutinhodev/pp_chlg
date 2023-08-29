@@ -16,12 +16,12 @@ type UserAuthenticationCreateUserSuite struct {
 }
 
 var createUserInputMock = &UserAuthentication_CreateUserInputDTO{
-	FirstName:               "any_first_name",
-	LastName:                "any_last_name",
-	Email:                   "any_email",
-	Password:                "any_password",
-	TaxpayeerIdentification: "any_taxpayeer_identification",
-	Role:                    "any_role",
+	FirstName:              "any_first_name",
+	LastName:               "any_last_name",
+	Email:                  "any_email",
+	Password:               "any_password",
+	TaxpayerIdentification: "any_taxpayer_identification",
+	Role:                   "any_role",
 }
 
 func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidInput_ShouldReturnValidationError() {
@@ -30,7 +30,7 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidInput_ShouldReturnVa
 		createUserInputMock.LastName,
 		createUserInputMock.Email,
 		createUserInputMock.Password,
-		createUserInputMock.TaxpayeerIdentification,
+		createUserInputMock.TaxpayerIdentification,
 		createUserInputMock.Role,
 	)
 
@@ -51,13 +51,13 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidInput_ShouldReturnVa
 	userValidatorMock.AssertExpectations(s.T())
 }
 
-func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayeerIdentificationRegistered_ShouldReturnDuplicationError() {
+func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayerIdentificationRegistered_ShouldReturnDuplicationError() {
 	userEntityMock := entity.NewUser(
 		createUserInputMock.FirstName,
 		createUserInputMock.LastName,
 		createUserInputMock.Email,
 		createUserInputMock.Password,
-		createUserInputMock.TaxpayeerIdentification,
+		createUserInputMock.TaxpayerIdentification,
 		createUserInputMock.Role,
 	)
 
@@ -75,7 +75,7 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayeerIdentificat
 	assert.Equal(s.T(), OutputUserAuthenticationDTO{
 		StatusCode: 400,
 		Success:    false,
-		Errors:     []string{"email and/or taxpayeer identification are already registered"},
+		Errors:     []string{"email and/or taxpayer identification are already registered"},
 	}, *output)
 
 	userValidatorMock.AssertExpectations(s.T())

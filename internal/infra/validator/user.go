@@ -34,8 +34,8 @@ func (uv UserValidator) Validate(user entity.User) (errors []string) {
 		errors = append(errors, "password must be at least 7 characters with uppercase/lowercase letters, number, special character")
 	}
 
-	if isValid := pkg.CPFCNPJValidator(user.TaxpayeerIdentification); !isValid {
-		errors = append(errors, "taxpayeer identification must be a valid CPF or CNPJ")
+	if isValid := pkg.CPFCNPJValidator(user.TaxpayerIdentification); !isValid {
+		errors = append(errors, "taxpayer identification must be a valid CPF or CNPJ")
 	}
 
 	if isValid := uv.roleValidator(user.Role); !isValid {

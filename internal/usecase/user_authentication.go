@@ -29,16 +29,16 @@ type OutputUserAuthenticationDTO struct {
 }
 
 type UserAuthentication_CreateUserInputDTO struct {
-	FirstName               string `json:"first_name"`
-	LastName                string `json:"last_name"`
-	Email                   string `json:"email"`
-	Password                string `json:"password"`
-	TaxpayeerIdentification string `json:"taxpayeer_identification"`
-	Role                    string `json:"role"`
+	FirstName              string `json:"first_name"`
+	LastName               string `json:"last_name"`
+	Email                  string `json:"email"`
+	Password               string `json:"password"`
+	TaxpayerIdentification string `json:"taxpayer_identification"`
+	Role                   string `json:"role"`
 }
 
 func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentication_CreateUserInputDTO) (*OutputUserAuthenticationDTO, error) {
-	user := entity.NewUser(input.FirstName, input.LastName, input.Email, input.Password, input.TaxpayeerIdentification, input.Role)
+	user := entity.NewUser(input.FirstName, input.LastName, input.Email, input.Password, input.TaxpayerIdentification, input.Role)
 
 	if err := u.UserValidator.Validate(*user); len(err) > 0 {
 		output := &OutputUserAuthenticationDTO{
@@ -58,7 +58,7 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentic
 		output := &OutputUserAuthenticationDTO{
 			StatusCode: http.StatusBadRequest,
 			Success:    false,
-			Errors:     []string{"email and/or taxpayeer identification are already registered"},
+			Errors:     []string{"email and/or taxpayer identification are already registered"},
 		}
 		return output, nil
 	}

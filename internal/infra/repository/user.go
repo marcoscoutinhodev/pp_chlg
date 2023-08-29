@@ -26,7 +26,7 @@ func (ur UserRepository) CheckUserIsRegistered(ctx context.Context, user entity.
 			Key: "$or",
 			Value: bson.A{
 				bson.D{{Key: "email", Value: user.Email}},
-				bson.D{{Key: "taxpayeer_identification", Value: user.TaxpayeerIdentification}},
+				bson.D{{Key: "taxpayer_identification", Value: user.TaxpayerIdentification}},
 			},
 		},
 	}).Err()
