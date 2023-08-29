@@ -21,7 +21,7 @@ func (w *WalletRepositoryMock) Load(ctx context.Context, userID string) (*entity
 	return args.Get(0).(*entity.Wallet), args.Error(1)
 }
 
-func (w *WalletRepositoryMock) Transfer(ctx context.Context, transfer entity.Transfer) (userPayer, userPayee *entity.User, err error) {
+func (w *WalletRepositoryMock) Transfer(ctx context.Context, transfer *entity.Transfer) (userPayer, userPayee *entity.User, err error) {
 	args := w.Called(ctx, transfer)
 
 	if args.Get(0) == nil || args.Get(1) == nil {

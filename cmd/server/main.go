@@ -34,28 +34,45 @@ func main() {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 
-	mongoClient := repository.NewMongoClient(context.Background())
-
 	identityManager := keycloak.NewIdentityManager()
-	userValidator := validator.NewUserValidator()
+
+	// repositories
+	mongoClient := repository.NewMongoClient(context.Background())
 	userRepository := repository.NewUserRepository(mongoClient)
+	walletRepository := repository.NewWalleteRepository(mongoClient)
+	transferRepository := repository.NewTransferRepository(mongoClient)
+
+	// services
+	transferAuthorizationService := service.NewTransferAuthorizationService()
+	emailNotificationService := service.NewEmailNotificationService()
+
+	// validators
+	userValidator := validator.NewUserValidator()
+
+	// usecases
 	userAuthenticationUseCase := usecase.NewUserAuthentication(identityManager, userValidator, userRepository)
+	transferUseCase := usecase.NewTransfer(transferAuthorizationService, emailNotificationService, walletRepository, transferRepository)
+
+	// controllers
 	userAuthenticationController := controller.NewUserAuthenticationController(*userAuthenticationUseCase)
+	transferController := controller.NewTransfer(*transferUseCase)
+
+	// middlewares
+	transferListAuthorizationMiddleware := http_middleware.NewAuthorization(map[string]bool{"shopkeeper": true, "customer": true})
+	transferAuthorizationMiddleware := http_middleware.NewAuthorization(map[string]bool{"customer": true})
 
 	mux.Route("/user", func(r chi.Router) {
 		r.Post("/signup", userAuthenticationController.CreateUser)
 		r.Post("/signin", userAuthenticationController.AuthenticateUser)
 	})
 
-	transferAuthorizationService := service.NewTransferAuthorizationService()
-	emailNotificationService := service.NewEmailNotificationService()
-	walletRepository := repository.NewWalleteRepository(mongoClient)
-	transferUseCase := usecase.NewTransfer(transferAuthorizationService, emailNotificationService, walletRepository)
-	transferController := controller.NewTransfer(*transferUseCase)
-	transferAuthorizationMiddleware := http_middleware.NewAuthorization(map[string]bool{"customer": true})
-
-	mux.Post("/transfer", func(w http.ResponseWriter, r *http.Request) {
-		transferAuthorizationMiddleware.Handle(w, r, transferController.Handle)
+	mux.Route("/transfer", func(r chi.Router) {
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			transferAuthorizationMiddleware.Handle(w, r, transferController.Transfer)
+		})
+		r.Get("/list", func(w http.ResponseWriter, r *http.Request) {
+			transferListAuthorizationMiddleware.Handle(w, r, transferController.List)
+		})
 	})
 
 	http.ListenAndServe(os.Getenv("SERVER_PORT"), mux)

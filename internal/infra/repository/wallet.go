@@ -35,7 +35,7 @@ func (wr WalleteRepository) Load(ctx context.Context, userID string) (*entity.Wa
 	return &wallet, nil
 }
 
-func (wr WalleteRepository) Transfer(ctx context.Context, transfer entity.Transfer) (userPayer, userPayee *entity.User, err error) {
+func (wr WalleteRepository) Transfer(ctx context.Context, transfer *entity.Transfer) (userPayer, userPayee *entity.User, err error) {
 	session, err := wr.client.StartSession()
 	if err != nil {
 		return nil, nil, err
@@ -84,6 +84,14 @@ func (wr WalleteRepository) Transfer(ctx context.Context, transfer entity.Transf
 				{Key: "balance", Value: wallet.Balance + transfer.Amount},
 			}},
 		})
+
+		transferColl := wr.client.Database(os.Getenv("MONGO_DB")).Collection("transfers")
+		transferInsertResult, err := transferColl.InsertOne(ctx, transfer)
+		if err != nil {
+			return nil, err
+		}
+
+		transfer.ID = transferInsertResult.InsertedID.(primitive.ObjectID).Hex()
 
 		if err := session.CommitTransaction(ctx); err != nil {
 			return nil, err

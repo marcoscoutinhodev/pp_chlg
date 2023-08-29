@@ -21,7 +21,7 @@ func NewUserAuthenticationController(uauc usecase.UserAuthentication) *UserAuthe
 }
 
 func (u UserAuthenticationController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var input usecase.UserAuthentication_CreateUserInputDTO
+	var input usecase.UserCreateInputDTO
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -50,7 +50,7 @@ func (u UserAuthenticationController) CreateUser(w http.ResponseWriter, r *http.
 }
 
 func (u UserAuthenticationController) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
-	var input usecase.UserAuthentication_AuthenticateUserInputDTO
+	var input usecase.UserAuthenticateInputDTO
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(map[string]interface{}{

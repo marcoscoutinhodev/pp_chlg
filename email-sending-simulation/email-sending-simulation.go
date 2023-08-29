@@ -46,23 +46,24 @@ func emailSendingSimulation(attempts uint, err error) error {
 		}
 
 		transferNotification := struct {
-			PayerEmail        string  `json:"payer_email,omitempty"`
-			PayerName         string  `json:"payer_name,omitempty"`
-			PayeeEmail        string  `json:"payee_email,omitempty"`
-			PayeeName         string  `json:"payee_name,omitempty"`
-			AmountTransferred float64 `json:"amount_transferred,omitempty"`
-			Date              string  `json:"date,omitempty"`
+			TransferID        string  `json:"transfer_id"`
+			PayerEmail        string  `json:"payer_email"`
+			PayerName         string  `json:"payer_name"`
+			PayeeEmail        string  `json:"payee_email"`
+			PayeeName         string  `json:"payee_name"`
+			AmountTransferred float64 `json:"amount_transferred"`
+			Date              string  `json:"date"`
 		}{}
 
 		for d := range delivery {
 			if err := json.Unmarshal(d.Body, &transferNotification); err == nil {
 				fmt.Println("*****************************************************************************************")
 
-				fmt.Printf("Enviando email para %s\nTitulo: Pagamento Realizado\nMensagem: Você pagou R$%.2f a %s | %s\n\n\n",
-					transferNotification.PayerEmail, transferNotification.AmountTransferred, transferNotification.PayeeName, transferNotification.Date)
+				fmt.Printf("Enviando email para %s\nTitulo: Pagamento Realizado\nMensagem: Você pagou R$%.2f a %s | Transação: %s | %s\n\n\n",
+					transferNotification.PayerEmail, transferNotification.AmountTransferred, transferNotification.PayeeName, transferNotification.TransferID, transferNotification.Date)
 
-				fmt.Printf("Enviando email para %s\nTitulo: Pagamento Recebido\nMensagem: %s, você recebeu R$%.2f | %s\n",
-					transferNotification.PayeeEmail, transferNotification.PayeeName, transferNotification.AmountTransferred, transferNotification.Date)
+				fmt.Printf("Enviando email para %s\nTitulo: Pagamento Recebido\nMensagem: %s, você recebeu R$%.2f | Transação: %s | %s\n",
+					transferNotification.PayeeEmail, transferNotification.PayeeName, transferNotification.AmountTransferred, transferNotification.TransferID, transferNotification.Date)
 
 				fmt.Printf("*****************************************************************************************\n\n")
 

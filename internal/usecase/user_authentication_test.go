@@ -15,7 +15,7 @@ type UserAuthenticationCreateUserSuite struct {
 	suite.Suite
 }
 
-var createUserInputMock = &UserAuthentication_CreateUserInputDTO{
+var createUserInputMock = &UserCreateInputDTO{
 	FirstName:              "any_first_name",
 	LastName:               "any_last_name",
 	Email:                  "any_email",
@@ -42,7 +42,7 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenInvalidInput_ShouldReturnVa
 	output, err := sut.CreateUser(context.Background(), createUserInputMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+	assert.Equal(s.T(), UserAuthenticationOutputDTO{
 		StatusCode: 400,
 		Success:    false,
 		Errors:     []string{"any_error", "other_error"},
@@ -72,7 +72,7 @@ func (s *UserAuthenticationCreateUserSuite) TestGivenEmailOrTaxpayerIdentificati
 	output, err := sut.CreateUser(context.Background(), createUserInputMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+	assert.Equal(s.T(), UserAuthenticationOutputDTO{
 		StatusCode: 400,
 		Success:    false,
 		Errors:     []string{"email and/or taxpayer identification are already registered"},
@@ -90,7 +90,7 @@ type UserAuthenticationAuthenticateUserSuite struct {
 	suite.Suite
 }
 
-var authenticateUserInputMock = &UserAuthentication_AuthenticateUserInputDTO{
+var authenticateUserInputMock = &UserAuthenticateInputDTO{
 	Email:    "any_email",
 	Password: "any_password",
 }
@@ -105,7 +105,7 @@ func (s *UserAuthenticationAuthenticateUserSuite) TestGivenInvalidInput_ShouldRe
 	output, err := sut.AuthenticateUser(context.Background(), authenticateUserInputMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+	assert.Equal(s.T(), UserAuthenticationOutputDTO{
 		StatusCode: 401,
 		Success:    false,
 		Errors:     []string{"email and/or password are invalid"},
@@ -126,7 +126,7 @@ func (s *UserAuthenticationAuthenticateUserSuite) TestGivenInvalidEmailOrPasswor
 	output, err := sut.AuthenticateUser(context.Background(), authenticateUserInputMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OutputUserAuthenticationDTO{
+	assert.Equal(s.T(), UserAuthenticationOutputDTO{
 		StatusCode: 401,
 		Success:    false,
 		Errors:     []string{"email and/or password are invalid"},

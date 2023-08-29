@@ -15,7 +15,7 @@ type TransferSuite struct {
 	suite.Suite
 }
 
-var inputTransferMock = &InputTransferDTO{
+var inputTransferMock = &TransferInputDTO{
 	Payer:  "any_payer_id",
 	Payee:  "any_payee_id",
 	Amount: 10,
@@ -25,11 +25,11 @@ func (s *TransferSuite) TestGivenAmountGreaterThanBalance_ShouldReturnError() {
 	walletRepositoryMock := &mocks.WalletRepositoryMock{}
 	walletRepositoryMock.On("Load", context.Background(), "any_payer_id").Return(entity.NewWallet("any_payer_id", 0), nil)
 
-	sut := NewTransfer(&mocks.TransferAuthorizationServiceMock{}, &mocks.EmailNotificationServiceMock{}, walletRepositoryMock)
-	output, err := sut.Execute(context.Background(), inputTransferMock)
+	sut := NewTransfer(&mocks.TransferAuthorizationServiceMock{}, &mocks.EmailNotificationServiceMock{}, walletRepositoryMock, &mocks.TransferRepositoryMock{})
+	output, err := sut.Transfer(context.Background(), inputTransferMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OuputTransferDTO{
+	assert.Equal(s.T(), TransferOuputDTO{
 		StatusCode: 402,
 		Success:    false,
 		Errors:     []string{"insufficient funds"},
@@ -46,11 +46,11 @@ func (s *TransferSuite) TestGivenErrorInTransferAuthorizationService_ShouldRetur
 	transferAuthorizationServiceMock := &mocks.TransferAuthorizationServiceMock{}
 	transferAuthorizationServiceMock.On("Check", context.Background(), *transferMock).Return(errors.New("unauthorized"))
 
-	sut := NewTransfer(transferAuthorizationServiceMock, &mocks.EmailNotificationServiceMock{}, walletRepositoryMock)
-	output, err := sut.Execute(context.Background(), inputTransferMock)
+	sut := NewTransfer(transferAuthorizationServiceMock, &mocks.EmailNotificationServiceMock{}, walletRepositoryMock, &mocks.TransferRepositoryMock{})
+	output, err := sut.Transfer(context.Background(), inputTransferMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OuputTransferDTO{
+	assert.Equal(s.T(), TransferOuputDTO{
 		StatusCode: 422,
 		Success:    false,
 		Errors:     []string{"the transfer was not authorized"},
@@ -65,16 +65,16 @@ func (s *TransferSuite) TestGivenErrorInWalletRepository_Transfer_ShouldReturnEr
 
 	walletRepositoryMock := &mocks.WalletRepositoryMock{}
 	walletRepositoryMock.On("Load", context.Background(), "any_payer_id").Return(entity.NewWallet("any_payer_id", 10), nil)
-	walletRepositoryMock.On("Transfer", context.Background(), *transferMock).Return(nil, nil, errors.New("any_error"))
+	walletRepositoryMock.On("Transfer", context.Background(), transferMock).Return(nil, nil, errors.New("any_error"))
 
 	transferAuthorizationServiceMock := &mocks.TransferAuthorizationServiceMock{}
 	transferAuthorizationServiceMock.On("Check", context.Background(), *transferMock).Return(nil)
 
-	sut := NewTransfer(transferAuthorizationServiceMock, &mocks.EmailNotificationServiceMock{}, walletRepositoryMock)
-	output, err := sut.Execute(context.Background(), inputTransferMock)
+	sut := NewTransfer(transferAuthorizationServiceMock, &mocks.EmailNotificationServiceMock{}, walletRepositoryMock, &mocks.TransferRepositoryMock{})
+	output, err := sut.Transfer(context.Background(), inputTransferMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OuputTransferDTO{
+	assert.Equal(s.T(), TransferOuputDTO{
 		StatusCode: 422,
 		Success:    false,
 		Errors:     []string{"unexpected error completing transfer"},
@@ -100,13 +100,13 @@ func (s *TransferSuite) TestGivenErrorInEmailNotification_ShouldReturnPartialErr
 
 	walletRepositoryMock := &mocks.WalletRepositoryMock{}
 	walletRepositoryMock.On("Load", context.Background(), "any_payer_id").Return(entity.NewWallet("any_payer_id", 10), nil)
-	walletRepositoryMock.On("Transfer", context.Background(), *transferMock).Return(payerMock, payeeMock, nil)
+	walletRepositoryMock.On("Transfer", context.Background(), transferMock).Return(payerMock, payeeMock, nil)
 
-	sut := NewTransfer(transferAuthorizationServiceMock, emailNotificationServiceMock, walletRepositoryMock)
-	output, err := sut.Execute(context.Background(), inputTransferMock)
+	sut := NewTransfer(transferAuthorizationServiceMock, emailNotificationServiceMock, walletRepositoryMock, &mocks.TransferRepositoryMock{})
+	output, err := sut.Transfer(context.Background(), inputTransferMock)
 
 	assert.Nil(s.T(), err)
-	assert.Equal(s.T(), OuputTransferDTO{
+	assert.Equal(s.T(), TransferOuputDTO{
 		StatusCode: 206,
 		Success:    true,
 		Data:       "transfer successful but something went wrong to notify users",

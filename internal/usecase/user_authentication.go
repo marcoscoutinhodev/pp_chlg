@@ -21,14 +21,14 @@ func NewUserAuthentication(im IdentityManagerInterface, uv UserValidatorInterfac
 	}
 }
 
-type OutputUserAuthenticationDTO struct {
+type UserAuthenticationOutputDTO struct {
 	StatusCode int         `json:"-"`
 	Success    bool        `json:"success"`
 	Data       interface{} `json:"data,omitempty"`
 	Errors     []string    `json:"errors,omitempty"`
 }
 
-type UserAuthentication_CreateUserInputDTO struct {
+type UserCreateInputDTO struct {
 	FirstName              string `json:"first_name"`
 	LastName               string `json:"last_name"`
 	Email                  string `json:"email"`
@@ -37,11 +37,11 @@ type UserAuthentication_CreateUserInputDTO struct {
 	Role                   string `json:"role"`
 }
 
-func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentication_CreateUserInputDTO) (*OutputUserAuthenticationDTO, error) {
+func (u UserAuthentication) CreateUser(ctx context.Context, input *UserCreateInputDTO) (*UserAuthenticationOutputDTO, error) {
 	user := entity.NewUser(input.FirstName, input.LastName, input.Email, input.Password, input.TaxpayerIdentification, input.Role)
 
 	if err := u.UserValidator.Validate(*user); len(err) > 0 {
-		output := &OutputUserAuthenticationDTO{
+		output := &UserAuthenticationOutputDTO{
 			StatusCode: http.StatusBadRequest,
 			Success:    false,
 			Errors:     err,
@@ -55,7 +55,7 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentic
 	}
 
 	if userIsRegistered {
-		output := &OutputUserAuthenticationDTO{
+		output := &UserAuthenticationOutputDTO{
 			StatusCode: http.StatusBadRequest,
 			Success:    false,
 			Errors:     []string{"email and/or taxpayer identification are already registered"},
@@ -74,23 +74,23 @@ func (u UserAuthentication) CreateUser(ctx context.Context, input *UserAuthentic
 		return nil, err
 	}
 
-	return &OutputUserAuthenticationDTO{
+	return &UserAuthenticationOutputDTO{
 		StatusCode: http.StatusCreated,
 		Success:    true,
 	}, nil
 }
 
-type UserAuthentication_AuthenticateUserInputDTO struct {
+type UserAuthenticateInputDTO struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-func (u UserAuthentication) AuthenticateUser(ctx context.Context, input *UserAuthentication_AuthenticateUserInputDTO) (*OutputUserAuthenticationDTO, error) {
+func (u UserAuthentication) AuthenticateUser(ctx context.Context, input *UserAuthenticateInputDTO) (*UserAuthenticationOutputDTO, error) {
 	err := u.UserValidator.ValidateEmailAndPassword(input.Email, input.Password)
 	if len(err) == 0 {
 		jwt, err := u.IdentityManager.AuthenticateUser(ctx, input.Email, input.Password)
 		if err == nil {
-			output := &OutputUserAuthenticationDTO{
+			output := &UserAuthenticationOutputDTO{
 				StatusCode: http.StatusOK,
 				Success:    true,
 				Data:       jwt,
@@ -99,7 +99,7 @@ func (u UserAuthentication) AuthenticateUser(ctx context.Context, input *UserAut
 		}
 	}
 
-	output := &OutputUserAuthenticationDTO{
+	output := &UserAuthenticationOutputDTO{
 		StatusCode: http.StatusUnauthorized,
 		Success:    false,
 		Errors:     []string{"email and/or password are invalid"},

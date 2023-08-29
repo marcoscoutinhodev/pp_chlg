@@ -24,7 +24,11 @@ type UserRepositoryInterface interface {
 
 type WalletRepositoryInterface interface {
 	Load(ctx context.Context, userID string) (*entity.Wallet, error)
-	Transfer(ctx context.Context, transfer entity.Transfer) (userPayer, userPayee *entity.User, err error)
+	Transfer(ctx context.Context, transfer *entity.Transfer) (userPayer, userPayee *entity.User, err error)
+}
+
+type TransferRepositoryInterface interface {
+	List(ctx context.Context, userID string, page, limit int64, transfers *[]entity.Transfer) error
 }
 type TransferAuthorizationServiceInterface interface {
 	Check(ctx context.Context, transfer entity.Transfer) error

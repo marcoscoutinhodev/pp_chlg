@@ -11,30 +11,32 @@ type Transfer struct {
 	transferAuthorizationService TransferAuthorizationServiceInterface
 	emailNotificationService     EmailNotificationServiceInterface
 	walletRepository             WalletRepositoryInterface
+	transferRepository           TransferRepositoryInterface
 }
 
-func NewTransfer(ats TransferAuthorizationServiceInterface, ens EmailNotificationServiceInterface, wr WalletRepositoryInterface) *Transfer {
+func NewTransfer(ats TransferAuthorizationServiceInterface, ens EmailNotificationServiceInterface, wr WalletRepositoryInterface, tr TransferRepositoryInterface) *Transfer {
 	return &Transfer{
 		transferAuthorizationService: ats,
 		emailNotificationService:     ens,
 		walletRepository:             wr,
+		transferRepository:           tr,
 	}
 }
 
-type InputTransferDTO struct {
-	Payer  string  `json:"-"`
-	Payee  string  `json:"payee"`
-	Amount float64 `json:"amount"`
-}
-
-type OuputTransferDTO struct {
+type TransferOuputDTO struct {
 	StatusCode int         `json:"-"`
 	Success    bool        `json:"success"`
 	Data       interface{} `json:"data,omitempty"`
 	Errors     []string    `json:"errors,omitempty"`
 }
 
-func (t Transfer) Execute(ctx context.Context, input *InputTransferDTO) (*OuputTransferDTO, error) {
+type TransferInputDTO struct {
+	Payer  string  `json:"-"`
+	Payee  string  `json:"payee"`
+	Amount float64 `json:"amount"`
+}
+
+func (t Transfer) Transfer(ctx context.Context, input *TransferInputDTO) (*TransferOuputDTO, error) {
 	transfer := entity.NewTransfer(input.Payer, input.Payee, input.Amount)
 
 	wallet, err := t.walletRepository.Load(ctx, transfer.Payer)
@@ -43,7 +45,7 @@ func (t Transfer) Execute(ctx context.Context, input *InputTransferDTO) (*OuputT
 	}
 
 	if (wallet.Balance - input.Amount) < 0 {
-		output := &OuputTransferDTO{
+		output := &TransferOuputDTO{
 			StatusCode: http.StatusPaymentRequired,
 			Success:    false,
 			Errors:     []string{"insufficient funds"},
@@ -53,7 +55,7 @@ func (t Transfer) Execute(ctx context.Context, input *InputTransferDTO) (*OuputT
 
 	err = t.transferAuthorizationService.Check(ctx, *transfer)
 	if err != nil {
-		output := &OuputTransferDTO{
+		output := &TransferOuputDTO{
 			StatusCode: http.StatusUnprocessableEntity,
 			Success:    false,
 			Errors:     []string{"the transfer was not authorized"},
@@ -61,9 +63,9 @@ func (t Transfer) Execute(ctx context.Context, input *InputTransferDTO) (*OuputT
 		return output, nil
 	}
 
-	userPayer, userPayee, err := t.walletRepository.Transfer(ctx, *transfer)
+	userPayer, userPayee, err := t.walletRepository.Transfer(ctx, transfer)
 	if err != nil {
-		output := &OuputTransferDTO{
+		output := &TransferOuputDTO{
 			StatusCode: http.StatusUnprocessableEntity,
 			Success:    false,
 			Errors:     []string{"unexpected error completing transfer"},
@@ -72,16 +74,43 @@ func (t Transfer) Execute(ctx context.Context, input *InputTransferDTO) (*OuputT
 	}
 
 	if err := t.emailNotificationService.TransferNotification(ctx, *userPayer, *userPayee, *transfer); err != nil {
-		return &OuputTransferDTO{
+		return &TransferOuputDTO{
 			StatusCode: http.StatusPartialContent,
 			Success:    true,
 			Data:       "transfer successful but something went wrong to notify users",
 		}, nil
 	}
 
-	return &OuputTransferDTO{
+	return &TransferOuputDTO{
 		StatusCode: http.StatusOK,
 		Success:    true,
 		Data:       "successful transfer",
+	}, nil
+}
+
+type TransferListInputDTO struct {
+	UserID string
+	Page   int64
+	Limit  int64
+}
+
+func (t Transfer) List(ctx context.Context, input *TransferListInputDTO) (*TransferOuputDTO, error) {
+	if input.Page <= 0 || input.Limit <= 0 {
+		return &TransferOuputDTO{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Errors:     []string{"limit and page must be greater than 0"},
+		}, nil
+	}
+
+	var transfers []entity.Transfer
+	if err := t.transferRepository.List(ctx, input.UserID, input.Page, input.Limit, &transfers); err != nil {
+		return nil, err
+	}
+
+	return &TransferOuputDTO{
+		StatusCode: http.StatusOK,
+		Success:    true,
+		Data:       transfers,
 	}, nil
 }
