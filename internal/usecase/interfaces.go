@@ -31,5 +31,5 @@ type TransferAuthorizationServiceInterface interface {
 }
 
 type EmailNotificationServiceInterface interface {
-	TransferNotification(payer, payee *entity.User, amount float64)
+	TransferNotification(ctx context.Context, payer, payee entity.User, amount float64) error
 }
