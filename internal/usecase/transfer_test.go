@@ -96,7 +96,7 @@ func (s *TransferSuite) TestGivenErrorInEmailNotification_ShouldReturnPartialErr
 	payeeMock.UserID = "any_payee_id"
 
 	emailNotificationServiceMock := &mocks.EmailNotificationServiceMock{}
-	emailNotificationServiceMock.On("TransferNotification", context.Background(), *payerMock, *payeeMock, transferMock.Amount).Return(errors.New("any_error"))
+	emailNotificationServiceMock.On("TransferNotification", context.Background(), *payerMock, *payeeMock, *transferMock).Return(errors.New("any_error"))
 
 	walletRepositoryMock := &mocks.WalletRepositoryMock{}
 	walletRepositoryMock.On("Load", context.Background(), "any_payer_id").Return(entity.NewWallet("any_payer_id", 10), nil)

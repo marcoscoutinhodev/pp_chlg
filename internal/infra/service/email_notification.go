@@ -31,9 +31,10 @@ type transferNotificationdDTO struct {
 	PayeeEmail        string  `json:"payee_email"`
 	PayeeName         string  `json:"payee_name"`
 	AmountTransferred float64 `json:"amount_transferred"`
+	Date              string  `json:"date"`
 }
 
-func (e EmailNotificationService) TransferNotification(ctx context.Context, payer, payee entity.User, amount float64) error {
+func (e EmailNotificationService) TransferNotification(ctx context.Context, payer, payee entity.User, transfer entity.Transfer) error {
 	ch, err := e.conn.Channel()
 	if err != nil {
 		return err
@@ -46,7 +47,8 @@ func (e EmailNotificationService) TransferNotification(ctx context.Context, paye
 		PayerName:         fmt.Sprintf("%s %s", payer.FirstName, payer.LastName),
 		PayeeEmail:        payee.Email,
 		PayeeName:         fmt.Sprintf("%s %s", payee.FirstName, payee.LastName),
-		AmountTransferred: amount,
+		AmountTransferred: transfer.Amount,
+		Date:              transfer.Date,
 	}
 	body, err := json.Marshal(&input)
 	if err != nil {

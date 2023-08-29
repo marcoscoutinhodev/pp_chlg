@@ -71,7 +71,7 @@ func (t Transfer) Execute(ctx context.Context, input *InputTransferDTO) (*OuputT
 		return output, nil
 	}
 
-	if err := t.emailNotificationService.TransferNotification(ctx, *userPayer, *userPayee, transfer.Amount); err != nil {
+	if err := t.emailNotificationService.TransferNotification(ctx, *userPayer, *userPayee, *transfer); err != nil {
 		return &OuputTransferDTO{
 			StatusCode: http.StatusPartialContent,
 			Success:    true,
