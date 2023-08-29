@@ -14,10 +14,10 @@ import (
 type UserIDKeyContext struct{}
 
 type Authorization struct {
-	Roles []string
+	Roles map[string]bool
 }
 
-func NewAuthorization(roles []string) *Authorization {
+func NewAuthorization(roles map[string]bool) *Authorization {
 	return &Authorization{
 		Roles: roles,
 	}
@@ -82,18 +82,17 @@ func (a Authorization) Handle(w http.ResponseWriter, r *http.Request, next http.
 		return
 	}
 
-	roles := claims["roles"]
-	if rolesFromAccessTokenAsMap, ok := roles.(map[string]interface{}); ok {
-		for _, role := range a.Roles {
-			// all roles must be registered in the user's access token to continue
-			if rolesFromAccessTokenAsMap[role] == nil {
-				w.WriteHeader(http.StatusForbidden)
-				json.NewEncoder(w).Encode(map[string]interface{}{
-					"success": false,
-					"error":   "forbidden",
-				})
-				return
-			}
+	resourceAccess := claims["resource_access"].(map[string]interface{})
+	resourceAccessAll := resourceAccess["all"].(map[string]interface{})
+	roles := resourceAccessAll["roles"].([]interface{})
+	for _, role := range roles {
+		if !a.Roles[role.(string)] {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"success": false,
+				"error":   "forbidden",
+			})
+			return
 		}
 	}
 
