@@ -1,0 +1,42 @@
+### ENDPOINTS
+### OBS:
+###     - O ATRIBUTO 'taxpayer_identification' DEVE SER UM CNPJ OU CPF VALIDO
+###     - O ATRIBUTO 'role' DEVE ESTÁ CADASTRADO NO KEYCLOAK E NAS VARIAVEIS DE AMBIENTE
+
+### CASO ESTEJA UTILIZANDO O VSCODE, VOCÊ CONSEGUE TESTAR OS ENDPOINTS POR ESSE ARQUIVO UTILIZANDO A EXTENSÂO 'REST Client (Huachao Mao)'
+
+POST http://localhost:8000/user/signup
+Content-Type: application/json
+
+{
+  "first_name": "LOREM",
+  "last_name": "IPSUM",
+  "email": "lorem@ipsum.com",
+  "password": "P@ssw0rd",
+  "taxpayer_identification": "06947283000160", // CNPJ DO GOOGLE
+  "role": "lorem_ipsum"
+}
+
+###
+POST http://localhost:8000/user/signin
+Content-Type: application/json
+
+{
+  "email": "lorem@ipsum.com",
+  "password": "P@ssw0rd"
+}
+
+
+POST http://localhost:8000/transfer
+x_access_token: Bearer ACCESS_TOKEN
+
+{
+  "payee": "user_id que vai receber o pagamento",
+  "value": 100
+}
+
+###
+GET http://localhost:8000/transfer/list
+x_access_token: Bearer ACCESS_TOKEN
+page: 1
+limit: 10
