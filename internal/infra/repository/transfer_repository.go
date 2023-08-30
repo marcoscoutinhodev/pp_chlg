@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/marcoscoutinhodev/pp_chlg/internal/entity"
@@ -27,7 +26,15 @@ func (t TransferRepository) List(ctx context.Context, userID string, page, limit
 	options.SetSkip(page*limit - limit)
 	options.SetLimit(limit)
 
-	cur, err := transferColl.Find(ctx, bson.D{}, options)
+	cur, err := transferColl.Find(ctx, bson.D{
+		{
+			Key: "$or",
+			Value: bson.A{
+				bson.D{{Key: "payer", Value: userID}},
+				bson.D{{Key: "payee", Value: userID}},
+			},
+		},
+	}, options)
 	if err != nil {
 		return err
 	}
@@ -37,7 +44,7 @@ func (t TransferRepository) List(ctx context.Context, userID string, page, limit
 		if err := cur.Decode(&transfer); err != nil {
 			return err
 		}
-		fmt.Println(transfer)
+
 		*transfers = append(*transfers, transfer)
 	}
 

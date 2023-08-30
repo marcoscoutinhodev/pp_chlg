@@ -9,10 +9,15 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+// essa função serve apenas para emitir logs
+// simulando algum serviço que consuma os dados de transferência
+// para fazer o envio dos emails
 func EmailSendingSimulation() {
 	var attempts uint
 	var err error
-	emailSendingSimulation(attempts, err)
+	if err := emailSendingSimulation(attempts, err); err != nil {
+		fmt.Printf("EmailSendingSimulation: %v\n", err)
+	}
 }
 
 func emailSendingSimulation(attempts uint, err error) error {
@@ -46,13 +51,13 @@ func emailSendingSimulation(attempts uint, err error) error {
 		}
 
 		transferNotification := struct {
-			TransferID        string  `json:"transfer_id"`
-			PayerEmail        string  `json:"payer_email"`
-			PayerName         string  `json:"payer_name"`
-			PayeeEmail        string  `json:"payee_email"`
-			PayeeName         string  `json:"payee_name"`
-			AmountTransferred float64 `json:"amount_transferred"`
-			Date              string  `json:"date"`
+			TransferID       string  `json:"transfer_id"`
+			PayerEmail       string  `json:"payer_email"`
+			PayerName        string  `json:"payer_name"`
+			PayeeEmail       string  `json:"payee_email"`
+			PayeeName        string  `json:"payee_name"`
+			ValueTransferred float64 `json:"value_transferred"`
+			Date             string  `json:"date"`
 		}{}
 
 		for d := range delivery {
@@ -60,10 +65,10 @@ func emailSendingSimulation(attempts uint, err error) error {
 				fmt.Println("*****************************************************************************************")
 
 				fmt.Printf("Enviando email para %s\nTitulo: Pagamento Realizado\nMensagem: Você pagou R$%.2f a %s | Transação: %s | %s\n\n\n",
-					transferNotification.PayerEmail, transferNotification.AmountTransferred, transferNotification.PayeeName, transferNotification.TransferID, transferNotification.Date)
+					transferNotification.PayerEmail, transferNotification.ValueTransferred, transferNotification.PayeeName, transferNotification.TransferID, transferNotification.Date)
 
 				fmt.Printf("Enviando email para %s\nTitulo: Pagamento Recebido\nMensagem: %s, você recebeu R$%.2f | Transação: %s | %s\n",
-					transferNotification.PayeeEmail, transferNotification.PayeeName, transferNotification.AmountTransferred, transferNotification.TransferID, transferNotification.Date)
+					transferNotification.PayeeEmail, transferNotification.PayeeName, transferNotification.ValueTransferred, transferNotification.TransferID, transferNotification.Date)
 
 				fmt.Printf("*****************************************************************************************\n\n")
 

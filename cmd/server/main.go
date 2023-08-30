@@ -58,7 +58,7 @@ func main() {
 	transferController := controller.NewTransfer(*transferUseCase)
 
 	// middlewares
-	transferListAuthorizationMiddleware := http_middleware.NewAuthorization(map[string]bool{"shopkeeper": true, "customer": true})
+	transferListAuthorizationMiddleware := http_middleware.NewAuthorization(map[string]bool{})
 	transferAuthorizationMiddleware := http_middleware.NewAuthorization(map[string]bool{"customer": true})
 
 	mux.Route("/user", func(r chi.Router) {
@@ -70,7 +70,7 @@ func main() {
 		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
 			transferAuthorizationMiddleware.Handle(w, r, transferController.Transfer)
 		})
-		r.Get("/list", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			transferListAuthorizationMiddleware.Handle(w, r, transferController.List)
 		})
 	})

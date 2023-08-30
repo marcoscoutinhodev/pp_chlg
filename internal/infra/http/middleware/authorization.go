@@ -82,17 +82,19 @@ func (a Authorization) Handle(w http.ResponseWriter, r *http.Request, next http.
 		return
 	}
 
-	resourceAccess := claims["resource_access"].(map[string]interface{})
-	resourceAccessAll := resourceAccess["all"].(map[string]interface{})
-	roles := resourceAccessAll["roles"].([]interface{})
-	for _, role := range roles {
-		if !a.Roles[role.(string)] {
-			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"success": false,
-				"error":   "forbidden",
-			})
-			return
+	if len(a.Roles) > 0 {
+		resourceAccess := claims["resource_access"].(map[string]interface{})
+		resourceAccessAll := resourceAccess["all"].(map[string]interface{})
+		roles := resourceAccessAll["roles"].([]interface{})
+		for _, role := range roles {
+			if !a.Roles[role.(string)] {
+				w.WriteHeader(http.StatusForbidden)
+				json.NewEncoder(w).Encode(map[string]interface{}{
+					"success": false,
+					"error":   "forbidden",
+				})
+				return
+			}
 		}
 	}
 

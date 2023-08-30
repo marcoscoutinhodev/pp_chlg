@@ -16,12 +16,27 @@ type TransferSuite struct {
 }
 
 var inputTransferMock = &TransferInputDTO{
-	Payer:  "any_payer_id",
-	Payee:  "any_payee_id",
-	Amount: 10,
+	Payer: "any_payer_id",
+	Payee: "any_payee_id",
+	Value: 10,
 }
 
-func (s *TransferSuite) TestGivenAmountGreaterThanBalance_ShouldReturnError() {
+func (s *TransferSuite) TestGivenNegativeValue_ShouldReturnError() {
+	sut := NewTransfer(&mocks.TransferAuthorizationServiceMock{}, &mocks.EmailNotificationServiceMock{}, &mocks.WalletRepositoryMock{}, &mocks.TransferRepositoryMock{})
+
+	inputTransferMockClone := *inputTransferMock
+	inputTransferMockClone.Value = 0
+	output, err := sut.Transfer(context.Background(), &inputTransferMockClone)
+
+	assert.Nil(s.T(), err)
+	assert.Equal(s.T(), TransferOuputDTO{
+		StatusCode: 400,
+		Success:    false,
+		Errors:     []string{"invalid value for transfer"},
+	}, *output)
+}
+
+func (s *TransferSuite) TestGivenValueGreaterThanBalance_ShouldReturnError() {
 	walletRepositoryMock := &mocks.WalletRepositoryMock{}
 	walletRepositoryMock.On("Load", context.Background(), "any_payer_id").Return(entity.NewWallet("any_payer_id", 0), nil)
 
@@ -42,7 +57,7 @@ func (s *TransferSuite) TestGivenErrorInTransferAuthorizationService_ShouldRetur
 	walletRepositoryMock := &mocks.WalletRepositoryMock{}
 	walletRepositoryMock.On("Load", context.Background(), "any_payer_id").Return(entity.NewWallet("any_payer_id", 10), nil)
 
-	transferMock := entity.NewTransfer(inputTransferMock.Payer, inputTransferMock.Payee, inputTransferMock.Amount)
+	transferMock := entity.NewTransfer(inputTransferMock.Payer, inputTransferMock.Payee, inputTransferMock.Value)
 	transferAuthorizationServiceMock := &mocks.TransferAuthorizationServiceMock{}
 	transferAuthorizationServiceMock.On("Check", context.Background(), *transferMock).Return(errors.New("unauthorized"))
 
@@ -61,7 +76,7 @@ func (s *TransferSuite) TestGivenErrorInTransferAuthorizationService_ShouldRetur
 }
 
 func (s *TransferSuite) TestGivenErrorInWalletRepository_Transfer_ShouldReturnError() {
-	transferMock := entity.NewTransfer(inputTransferMock.Payer, inputTransferMock.Payee, inputTransferMock.Amount)
+	transferMock := entity.NewTransfer(inputTransferMock.Payer, inputTransferMock.Payee, inputTransferMock.Value)
 
 	walletRepositoryMock := &mocks.WalletRepositoryMock{}
 	walletRepositoryMock.On("Load", context.Background(), "any_payer_id").Return(entity.NewWallet("any_payer_id", 10), nil)
@@ -85,7 +100,7 @@ func (s *TransferSuite) TestGivenErrorInWalletRepository_Transfer_ShouldReturnEr
 }
 
 func (s *TransferSuite) TestGivenErrorInEmailNotification_ShouldReturnPartialError() {
-	transferMock := entity.NewTransfer(inputTransferMock.Payer, inputTransferMock.Payee, inputTransferMock.Amount)
+	transferMock := entity.NewTransfer(inputTransferMock.Payer, inputTransferMock.Payee, inputTransferMock.Value)
 
 	transferAuthorizationServiceMock := &mocks.TransferAuthorizationServiceMock{}
 	transferAuthorizationServiceMock.On("Check", context.Background(), *transferMock).Return(nil)

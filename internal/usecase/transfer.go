@@ -31,20 +31,29 @@ type TransferOuputDTO struct {
 }
 
 type TransferInputDTO struct {
-	Payer  string  `json:"-"`
-	Payee  string  `json:"payee"`
-	Amount float64 `json:"amount"`
+	Payer string  `json:"-"`
+	Payee string  `json:"payee"`
+	Value float64 `json:"value"`
 }
 
 func (t Transfer) Transfer(ctx context.Context, input *TransferInputDTO) (*TransferOuputDTO, error) {
-	transfer := entity.NewTransfer(input.Payer, input.Payee, input.Amount)
+	if input.Value <= 0 {
+		output := &TransferOuputDTO{
+			StatusCode: http.StatusBadRequest,
+			Success:    false,
+			Errors:     []string{"invalid value for transfer"},
+		}
+		return output, nil
+	}
+
+	transfer := entity.NewTransfer(input.Payer, input.Payee, input.Value)
 
 	wallet, err := t.walletRepository.Load(ctx, transfer.Payer)
 	if err != nil {
 		return nil, err
 	}
 
-	if (wallet.Balance - input.Amount) < 0 {
+	if (wallet.Balance - input.Value) < 0 {
 		output := &TransferOuputDTO{
 			StatusCode: http.StatusPaymentRequired,
 			Success:    false,

@@ -66,7 +66,7 @@ func (wr WalleteRepository) Transfer(ctx context.Context, transfer *entity.Trans
 
 		walletColl.UpdateByID(ctx, walletID, bson.D{
 			{Key: "$set", Value: bson.D{
-				{Key: "balance", Value: wallet.Balance - transfer.Amount},
+				{Key: "balance", Value: wallet.Balance - transfer.Value},
 			}},
 		})
 
@@ -81,7 +81,7 @@ func (wr WalleteRepository) Transfer(ctx context.Context, transfer *entity.Trans
 
 		walletColl.UpdateByID(ctx, walletID, bson.D{
 			{Key: "$set", Value: bson.D{
-				{Key: "balance", Value: wallet.Balance + transfer.Amount},
+				{Key: "balance", Value: wallet.Balance + transfer.Value},
 			}},
 		})
 

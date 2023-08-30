@@ -26,13 +26,13 @@ func NewEmailNotificationService() *EmailNotificationService {
 }
 
 type transferNotificationdDTO struct {
-	TransferID        string  `json:"transfer_id"`
-	PayerEmail        string  `json:"payer_email"`
-	PayerName         string  `json:"payer_name"`
-	PayeeEmail        string  `json:"payee_email"`
-	PayeeName         string  `json:"payee_name"`
-	AmountTransferred float64 `json:"amount_transferred"`
-	Date              string  `json:"date"`
+	TransferID       string  `json:"transfer_id"`
+	PayerEmail       string  `json:"payer_email"`
+	PayerName        string  `json:"payer_name"`
+	PayeeEmail       string  `json:"payee_email"`
+	PayeeName        string  `json:"payee_name"`
+	ValueTransferred float64 `json:"value_transferred"`
+	Date             string  `json:"date"`
 }
 
 func (e EmailNotificationService) TransferNotification(ctx context.Context, payer, payee entity.User, transfer entity.Transfer) error {
@@ -44,13 +44,13 @@ func (e EmailNotificationService) TransferNotification(ctx context.Context, paye
 	defer ch.Close()
 
 	input := transferNotificationdDTO{
-		TransferID:        transfer.ID,
-		PayerEmail:        payer.Email,
-		PayerName:         fmt.Sprintf("%s %s", payer.FirstName, payer.LastName),
-		PayeeEmail:        payee.Email,
-		PayeeName:         fmt.Sprintf("%s %s", payee.FirstName, payee.LastName),
-		AmountTransferred: transfer.Amount,
-		Date:              transfer.Date,
+		TransferID:       transfer.ID,
+		PayerEmail:       payer.Email,
+		PayerName:        fmt.Sprintf("%s %s", payer.FirstName, payer.LastName),
+		PayeeEmail:       payee.Email,
+		PayeeName:        fmt.Sprintf("%s %s", payee.FirstName, payee.LastName),
+		ValueTransferred: transfer.Value,
+		Date:             transfer.Date,
 	}
 	body, err := json.Marshal(&input)
 	if err != nil {
